@@ -46,6 +46,19 @@ func NewIndex(cfg *IndexConfig) (Index, error) {
 		cfg = DefaultIndexConfig()
 	}
 
+	// If both configurations are provided, use the in-memory index as a cache
+	if cfg.InMemoryConfig != nil && cfg.RedisConfig != nil {
+		cache, err := NewIndex(&IndexConfig{InMemoryConfig: cfg.InMemoryConfig})
+		if err != nil {
+			return nil, err
+		}
+		index, err := NewIndex(&IndexConfig{RedisConfig: cfg.RedisConfig})
+		if err != nil {
+			return nil, err
+		}
+		return NewCachedIndex(cache, index), nil
+	}
+
 	if cfg.InMemoryConfig != nil {
 		index, err := NewInMemoryIndex(cfg.InMemoryConfig)
 		if err != nil {

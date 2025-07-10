@@ -60,6 +60,19 @@ func NewRedisIndex(config *RedisIndexConfig) (Index, error) {
 	}, nil
 }
 
+// NewCachedRedisIndex creates a new Index that utilizes an in-memory cache for a RedisIndex backing Index.
+func NewCachedRedisIndex(memConfig *InMemoryIndexConfig, redisConfig *RedisIndexConfig) (Index, error) {
+	redis, err := NewRedisIndex(redisConfig)
+	if err != nil {
+		return nil, err
+	}
+	memory, err := NewInMemoryIndex(memConfig)
+	if err != nil {
+		return nil, err
+	}
+	return NewCachedIndex(memory, redis), nil
+}
+
 // RedisIndex implements the Index interface
 // using Redis as the backend for KV block indexing.
 type RedisIndex struct {
